@@ -1,3 +1,4 @@
+//them vao gio hang
 import Swal from "sweetalert2";
 
     const addCart = (data) => {
