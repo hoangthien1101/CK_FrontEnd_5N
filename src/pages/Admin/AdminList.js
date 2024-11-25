@@ -10,17 +10,10 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import { Autocomplete, Box, Button, Divider, Stack, TextField, Typography } from '@mui/material';
 import axios from 'axios';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import Swal from 'sweetalert2';
 import Modal from '@mui/material/Modal';
-import AddProduct from './AddCate';
-import EditProduct from './EditCate';
-import Skeleton from '@mui/material/Skeleton';
-import { useAppStore } from '../../appStore';
 import AddAdmin from './AddAdmin';
-import EditAdmin from './EditAdmin';
+import Skeleton from '@mui/material/Skeleton';
 
 const style = {
     position: 'absolute',
@@ -38,30 +31,21 @@ export default function AdminList() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [open, setOpen] = useState(false);
-    const [editOpen, setEditopen] = useState(false);
-    const [formid, setFormId] = useState('');
+    const [rows, setRows] = useState([]);
+
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    const handleEditOpen = () => setEditopen(true);
-    const handleEditClose = () => setEditopen(false);
-    const [rows, setRows] = useState([]);
-    // const setRows = useAppStore((state) => state.setRows);
-    // const rows = useAppStore((state) => state.rows);
 
     useEffect(() => {
-        apiCate();
+        fetchAdmins();
     }, []);
 
-    const apiCate = async () => {
+    const fetchAdmins = async () => {
         await axios.get('http://localhost:6060/user/useradmin').then((res) => {
             setRows(res.data);
         });
     };
-    const removeCate = async (id) => {
-        await axios.delete('http://localhost:6060/category/' + id).then((res) => {
-            setRows(res.data);
-        });
-    };
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -71,41 +55,11 @@ export default function AdminList() {
         setPage(0);
     };
 
-    const deleteProduct = (productId) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.value) {
-                deleteApi(productId);
-            }
-        });
-    };
-
-    const deleteApi = async (id) => {
-        await removeCate(id);
-        Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
-        apiCate();
-    };
-
-    const editData = (id, name) => {
-        const data = {
-            categoryId: id,
-            name: name,
-        };
-        setFormId(data);
-        handleEditOpen();
-    };
     const filterData = (v) => {
         if (v) {
             setRows([v]);
         } else {
-            apiCate();
+            fetchAdmins();
         }
     };
 
@@ -114,23 +68,11 @@ export default function AdminList() {
             <div>
                 <Modal
                     open={open}
-                    // onClose={handleClose}
                     aria-labelledby="modal-modal-title"
                     aria-describedby="modal-modal-description"
                 >
                     <Box sx={style}>
                         <AddAdmin closeEvent={handleClose} />
-                    </Box>
-                </Modal>
-
-                <Modal
-                    open={editOpen}
-                    // onClose={handleEditClose}
-                    aria-labelledby="modal-modal-title"
-                    aria-describedby="modal-modal-description"
-                >
-                    <Box sx={style}>
-                        <EditAdmin closeEvent={handleEditClose} fid={formid} />
                     </Box>
                 </Modal>
             </div>
@@ -176,31 +118,17 @@ export default function AdminList() {
                                     <TableCell align="left" style={{ minWidth: '100px', fontWeight: '600' }}>
                                         Role
                                     </TableCell>
-                                    <TableCell align="left" style={{ minWidth: '100px', fontWeight: '600' }}>
-                                        Actions
-                                    </TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                                     return (
-                                        <TableRow hover key={row.categoryId} role="checkbox" tabIndex={-1}>
+                                        <TableRow hover key={row.userId} role="checkbox" tabIndex={-1}>
                                             <TableCell align="left">{row.userId}</TableCell>
                                             <TableCell align="left">{row.fullName}</TableCell>
                                             <TableCell align="left">{row.email}</TableCell>
                                             <TableCell align="left">{row.Phone}</TableCell>
                                             <TableCell align="left">{row.role}</TableCell>
-                                            <TableCell align="left">
-                                                <EditIcon
-                                                    style={{ fontSize: '30px', color: 'blue', cursor: 'pointer' }}
-                                                    onClick={() => editData(row.categoryId, row.name)}
-                                                />
-
-                                                <DeleteIcon
-                                                    style={{ fontSize: '30px', color: 'darkred', cursor: 'pointer' }}
-                                                    onClick={() => deleteProduct(row.categoryId)}
-                                                />
-                                            </TableCell>
                                         </TableRow>
                                     );
                                 })}
@@ -218,7 +146,7 @@ export default function AdminList() {
                     />
                 </Paper>
             )}
-            {rows.length == 0 && (
+            {rows.length === 0 && (
                 <Paper sx={{ width: '98%', overflow: 'hidden', padding: '12px' }}>
                     <Box height={20} />
                     <Skeleton variant="rectangular" width={'100%'} height={30} />
